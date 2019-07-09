@@ -1,0 +1,30 @@
+@prefix: rh;
+
+.reset(@fontSize: inherit, @lineHeight:inherit) {
+  outline: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-size: @fontSize;
+  line-height: @lineHeight;
+  font-family: inherit;
+  &:after,
+  &:before {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+  }
+}
+
+.@{prefix}__mentions {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  .@{prefix}__mentions-input,
+  .@{prefix}__mentions-measure {
+    .reset();
+  }
+
+  .@{prefix}__mentions-input {
+    resize: none;
+  }
+}
