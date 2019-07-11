@@ -1,5 +1,6 @@
-import Mentions from './Mentions';
-import MentionsOption from './MentionsOption';
+import Mention from './Mention';
+import MentionOption from './MentionOption';
 
-export { Mentions, MentionsOption };
-export default Mentions;
+Mention.MentionOption = MentionOption;
+
+export default Mention;

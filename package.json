@@ -29,6 +29,7 @@
     "typescript": "^3.5.2"
   },
   "dependencies": {
+    "omit.js": "^1.0.2",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6"

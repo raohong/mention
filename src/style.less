@@ -18,46 +18,56 @@
   }
 }
 
-.@{prefix}__mentions {
+.@{prefix}__mention {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   position: relative;
   display: inline-block;
   overflow: auto;
 
-  .@{prefix}__mentions-input,
-  .@{prefix}__mentions-measure {
+  .@{prefix}__mention-input,
+  .@{prefix}__mention-measure {
     .reset();
-    width: 200px;
+
     border: 1px solid #ccc;
     padding: 1px 4px;
   }
 
-  .@{prefix}__mentions-input {
+  .@{prefix}__mention-input {
     resize: none;
   }
 
-  .@{prefix}__mentions-measure {
+  .@{prefix}__mention-measure {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
     z-index: -1;
     max-height: 100%;
-    // background-color: #eee;
+    background-color: transparent;
   }
 }
 
-.@{prefix}__mentions-dropdown {
+.@{prefix}__mention-dropdown {
   position: absolute;
   list-style: none;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   background-color: #fff;
+  outline: 0;
+
+  max-height: 250px;
+
+  overflow: auto;
+
   &-item {
     padding: 6px 28px;
     cursor: pointer;
     list-style: none;
+    outline: 0;
+    transition: background-color 0.2s ease-in;
+
     &:hover,
-    &:active &.active {
+    &:active,
+    &.active {
       background-color: #e6f7ff;
     }
   }

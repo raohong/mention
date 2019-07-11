@@ -61,7 +61,7 @@ export const updateValueWhenDelete = (value: string, prefix: string[], split: st
   }
 
 
-  return value.slice(0, meta.index - split.length)
+  return value.slice(0, Math.max(0, meta.index - split.length))
 
 }
 
@@ -69,7 +69,7 @@ export const insertMention = (value: string, mention: string, prefix: string, sp
   let gap = split;
 
   // 新的一行 不添加 间隙
-  if (/(?:\r?\n|\r)$/.test(value)) {
+  if (/(?:\r?\n|\r)$/.test(value) || value.length === 0) {
     gap = '';
   }
 

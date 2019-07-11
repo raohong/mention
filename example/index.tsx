@@ -1,7 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import Mentions, { MentionsOption } from '../src';
+import Mention from '../src';
+
+const { MentionOption } = Mention;
 
 const defaultList = [
   {
@@ -15,30 +17,52 @@ const defaultList = [
   {
     name: 'meyz',
     value: 'meyz'
+  },
+  {
+    name: 'bob',
+    value: 'bo1b'
+  },
+  {
+    name: 'meszyouh',
+    value: 'mesz2youh'
+  },
+  {
+    name: 'me2yz',
+    value: 'me2dqwd22z'
+  },
+  {
+    name: 'meszyouh',
+    value: 'mesz2ydqdwouh'
+  },
+  {
+    name: 'mey2z',
+    value: 'me22dqwd2yz'
+  },
+  {
+    name: 'me2yz',
+    value: 'me2dqwddd22z'
+  },
+  {
+    name: 'meszyouh',
+    value: 'mesz2dqwydqdwouh'
+  },
+  {
+    name: 'mey2z',
+    value: 'me22ddqwd2yz'
   }
 ];
 
 const App = () => {
-  const [value, setValue] = React.useState<string>('');
-
-  const [list, setList] = React.useState<any[]>([]);
-
-  const onSearch = (keyword: string) => {
-    console.log(keyword);
-
-    setTimeout(() => {
-      setList(defaultList);
-    }, 5000);
-  };
+  const [list, setList] = React.useState<any[]>(defaultList);
 
   return (
-    <Mentions onSearch={onSearch} rows={6} value={value} onChange={setValue}>
+    <Mention rows={6}>
       {list.map(item => (
-        <MentionsOption value={item.value} key={item.value}>
+        <MentionOption value={item.value} key={item.value}>
           {item.name}
-        </MentionsOption>
+        </MentionOption>
       ))}
-    </Mentions>
+    </Mention>
   );
 };
 
