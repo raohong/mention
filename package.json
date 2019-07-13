@@ -1,37 +1,82 @@
 {
-  "name": "@rh/mentions",
+  "name": "@rh/mention",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.js",
+  "typings": "./index.d.ts",
   "scripts": {
-    "test": "test",
-    "dev": "parcel example/index.html --open"
+    "prettier": "prettier --config .prettierrc  --write \"./{src,tests}/**/*.{less,ts,tsx,js}\" \"!./{build.dist}/**\"",
+    "test": "jest",
+    "dev": "parcel example/index.html --open",
+    "build-demo": "parcel build example/index.html --out-dir build --public-url ./ --no-source-maps",
+    "coveralls": "jest --coverage --coverageReporters=text-lcov | coveralls",
+    "build": "rollup --config"
   },
   "keywords": [
     "react",
     "react-dom",
-    "mentions"
+    "mention"
   ],
   "author": "raohong",
-  "license": "ISC",
+  "license": "MIt",
+  "jest": {
+    "setupFilesAfterEnv": [
+      "./node_modules/jest-enzyme/lib/index.js"
+    ],
+    "setupFiles": [
+      "./tests/setup.js"
+    ],
+    "moduleNameMapper": {
+      "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js"
+    }
+  },
   "devDependencies": {
     "@babel/core": "^7.5.0",
+    "@babel/plugin-proposal-class-properties": "^7.5.0",
     "@babel/preset-env": "^7.5.2",
     "@babel/preset-react": "^7.0.0",
     "@babel/preset-typescript": "^7.3.3",
     "@types/classnames": "^2.2.9",
+    "@types/enzyme": "^3.10.2",
+    "@types/enzyme-adapter-react-16": "^1.0.5",
     "@types/react": "^16.8.23",
     "@types/react-dom": "^16.8.4",
+    "autoprefixer": "^9.6.1",
+    "babel-jest": "^24.8.0",
+    "coveralls": "^3.0.5",
+    "enzyme": "^3.10.0",
+    "enzyme-adapter-react-16": "^1.14.0",
+    "gh-pages": "^2.0.1",
+    "jest": "^24.8.0",
+    "jest-enzyme": "^7.0.2",
     "less": "^3.9.0",
+    "parcel-bundler": "^1.12.3",
+    "prettier": "^1.18.2",
+    "react-test-renderer": "^16.8.6",
+    "rollup": "^1.16.7",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.0.1",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-postcss": "^2.0.3",
     "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-react": "^4.0.0",
-    "typescript": "^3.5.2"
+    "typescript": "^3.5.3"
+  },
+  "peerDependencies": {
+    "react": "^16.4",
+    "react-dom": "^16.4"
   },
   "dependencies": {
     "omit.js": "^1.0.2",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6"
-  }
+  },
+  "browserslist": [
+    "last 2 version",
+    "> 1%",
+    "IE 11"
+  ]
 }

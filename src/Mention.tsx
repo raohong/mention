@@ -1,20 +1,29 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import omit from 'omit.js';
+import PropTypes from 'prop-types';
 
-import MentionOption from './MentionOption';
+import MentionOption from './Option';
 import {
   detectLastMentioned,
   execCb,
-  ILastMentionedMeta,
   updateValueWhenDelete,
-  insertMention
+  ILastMentionedMeta,
+  insertMention,
+  getPrefix,
+  getValueFromProps,
+  getKeyFromProps,
+  createMentionDeleteModeValidator
 } from './utils';
 import { KEY_DOWN, KEY_UP, KEY_ENTER } from './constants';
 import './style.less';
 
 export interface MentionProps {
   value?: string;
+  defaultValue?: string;
+  placeholder?: string;
+  deleteMode?: 'normal' | 'whole';
+  placement?: 'top' | 'bottom';
   onChange?: (value: string) => void;
   onSearch?: (value: string) => void;
   onBlur?: (evt: React.FocusEvent) => void;
@@ -27,16 +36,17 @@ export interface MentionProps {
   [x: string]: any;
 }
 
-export type MentionOptionValue = string | number | boolean;
+type MentionOptionValue = string | number;
 
-export interface MentionContext {
-  toggleOption: (option: MentionOptionValue) => void;
-  value: any;
-  keyword: string;
-  classPrefix: string;
+type MentionOptionKey = string | number | number;
 
-  registerValue: (value: MentionOptionValue) => void;
-  cancelValue: (value: MentionOptionValue) => void;
+type ComponentPropTypes<T> = { [K in keyof T]: any };
+
+interface MentionOptionItem {
+  children: React.ReactNode;
+  props: Record<string, any>;
+  value: MentionOptionValue;
+  key: MentionOptionKey;
 }
 
 interface MentionState {
@@ -44,23 +54,24 @@ interface MentionState {
   measureText: string;
   dropdownVisible: boolean;
   keyword: string;
-  mentionOptionValue: MentionOptionValue;
-  mentionOptions: MentionOptionValue[];
+  dropdownActiveIndex: number;
+  mentionOptions: MentionOptionItem[];
+  children: React.ReactNode;
 }
 
-type CursorPosition = { left: number; top: number };
+type CursorPosition = {
+  left: number;
+  top: number | 'auto';
+  bottom: number | 'auto';
+};
 
-export const Context = React.createContext<MentionContext>(
-  {} as MentionContext
-);
-
-export default class Mention extends React.Component<
+export default class ZyouMention extends React.Component<
   MentionProps,
   MentionState
 > {
-  static prefix = 'rh';
+  static clsPrefix = 'zyou';
 
-  static MentionOption: typeof MentionOption;
+  static Option: typeof MentionOption;
 
   static style = {
     whiteSpace: 'pre-wrap',
@@ -70,11 +81,38 @@ export default class Mention extends React.Component<
   static defaultProps: MentionProps = {
     rows: 3,
     split: ' ',
-    prefix: '@'
+    prefix: '@',
+    placement: 'bottom',
+    /**
+     * After selecting a mention,
+     * if the text behind the cursor can match from the data source,
+     * delete the corresponding text.
+     */
+    deleteMode: 'whole'
   };
 
-  private cursorRef: React.RefObject<HTMLSpanElement>;
+  static propTypes = {
+    value: PropTypes.string,
+    deleteMode: PropTypes.oneOf(['normal', 'whole']),
+    placement: PropTypes.oneOf(['top', 'bottom']),
+    defaultValue: PropTypes.string,
+    placeholder: PropTypes.string,
+    onSearch: PropTypes.func,
+    onBlur: PropTypes.func,
+    onChange: PropTypes.func,
+    onFocus: PropTypes.func,
+    style: PropTypes.object,
+    className: PropTypes.string,
+    rows: PropTypes.number,
+    split: PropTypes.string,
+    prefix: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.arrayOf(PropTypes.string)
+    ])
+  } as ComponentPropTypes<MentionProps>;
 
+  private cursorRef: React.RefObject<HTMLSpanElement>;
+  private dropdownItemRefs: HTMLLIElement[] = [];
   private inputRef: React.RefObject<HTMLTextAreaElement>;
   private lastMeta: ILastMentionedMeta | null = null;
 
@@ -82,17 +120,16 @@ export default class Mention extends React.Component<
     super(props);
 
     this.state = {
-      value: '',
+      value: props.defaultValue || '',
       measureText: '',
       keyword: '',
-
       dropdownVisible: false,
-      mentionOptionValue: '',
-      mentionOptions: []
+      dropdownActiveIndex: 0,
+      mentionOptions: [],
+      children: null
     };
 
     this.cursorRef = React.createRef();
-
     this.inputRef = React.createRef();
   }
 
@@ -100,51 +137,84 @@ export default class Mention extends React.Component<
     nextProps: React.PropsWithChildren<MentionProps>,
     prevState: MentionState
   ): null | Partial<MentionState> {
-    if ('value' in nextProps && nextProps.value !== prevState.value) {
-      return {
-        value: nextProps.value
-      };
+    const nextState = {} as Partial<MentionState>;
+
+    const { value, children } = nextProps;
+
+    // 缓存 children
+    if (nextProps.children !== prevState.children) {
+      nextState.mentionOptions = ZyouMention.getOptionsFromChildren(
+        nextProps.children
+      );
+      nextState.children = children;
+      nextState.dropdownActiveIndex = 0;
     }
 
-    return null;
+    if ('value' in nextProps && value !== prevState.value) {
+      nextState.value = value;
+      return nextState;
+    }
+
+    return nextState;
+  }
+
+  static getOptionsFromChildren(childen: React.ReactNode): MentionOptionItem[] {
+    return React.Children.map(childen, child => {
+      return {
+        value: getValueFromProps(child),
+        children: child,
+        key: getKeyFromProps(child),
+
+        props:
+          typeof child === 'object' && child !== null
+            ? omit((child as Record<string, any>).props, ['children', 'value'])
+            : {}
+      } as MentionOptionItem;
+    });
   }
 
   componentDidUpdate() {
     this.getCursorRect();
+
+    const { dropdownActiveIndex } = this.state;
+
+    const item = this.dropdownItemRefs[dropdownActiveIndex];
+
+    if (item && item.scrollIntoView) {
+      item.scrollIntoView(false);
+    }
   }
 
-  // 获取 定位光标相对父级位置
-  getCursorRect = (): CursorPosition | null => {
+  // 获取 测量光标位置
+  getCursorRect = (): CursorPosition => {
     const node = this.cursorRef.current;
+    const ret: CursorPosition = {
+      left: 0,
+      top: 'auto',
+      bottom: 'auto'
+    };
 
     if (node) {
       const parent = node.parentElement;
       if (parent === null) {
-        return null;
+        return ret;
       }
-      const ret: CursorPosition = {
-        left: 0,
-        top: 0
-      };
 
       const rect = node.getBoundingClientRect();
 
       ret.left = rect.left;
 
-      // 计算滚动位置
-      ret.top =
+      const offset =
         rect.bottom > parent.clientHeight ? parent.clientHeight : rect.bottom;
 
-      return ret;
+      if (this.props.placement === 'bottom') {
+        ret.top = offset;
+      } else {
+        ret.bottom = document.documentElement.clientHeight - offset;
+      }
     }
 
-    return null;
-  };
-
-  getPrefix = () => {
-    const prefix = this.props.prefix!;
-
-    return Array.isArray(prefix) ? prefix : [prefix];
+    return ret;
   };
 
   setFocus = () => {
@@ -157,46 +227,6 @@ export default class Mention extends React.Component<
     if (this.inputRef.current) {
       this.inputRef.current.blur();
     }
-  };
-
-  registerValue = (value: MentionOptionValue) => {
-    this.setState(prev => {
-      const list = [...prev.mentionOptions, value];
-
-      const mentionOptionValue = prev.mentionOptionValue || list[0];
-
-      return {
-        mentionOptions: list,
-        mentionOptionValue
-      };
-    });
-  };
-
-  cancelValue = (value: MentionOptionValue) => {
-    this.setState(prev => {
-      const list = prev.mentionOptions.filter(item => item !== value);
-
-      const mentionOptionValue =
-        prev.mentionOptionValue === value ? list[0] : prev.mentionOptionValue;
-
-      return {
-        mentionOptions: list,
-        mentionOptionValue
-      };
-    });
-  };
-
-  getContextOptions = (): MentionContext => {
-    const { keyword, mentionOptionValue } = this.state;
-
-    return {
-      keyword,
-      toggleOption: this.toggleOption,
-      classPrefix: Mention.prefix,
-      value: mentionOptionValue,
-      registerValue: this.registerValue,
-      cancelValue: this.cancelValue
-    } as MentionContext;
   };
 
   handleFocus = (evt: React.FocusEvent) => {
@@ -212,52 +242,60 @@ export default class Mention extends React.Component<
     if (typeof onBlur === 'function') {
       onBlur(evt);
     }
-
-    this.resetMentionState();
   };
 
-  // 监听键盘事件
+  /**
+   * 获取 keyword  过滤后的数据
+   */
+  getFilterdOptions = () => {
+    const { keyword, mentionOptions } = this.state;
+    return keyword
+      ? mentionOptions.filter(item => String(item.value).includes(keyword))
+      : mentionOptions;
+  };
+
+  /**
+   * 监听下拉框键盘选择事件
+   * UP move up
+   * DOWN move down
+   * ENTER select
+   */
   handleKeydown = (evt: React.KeyboardEvent) => {
     const { keyCode } = evt;
-
-    const { dropdownVisible, mentionOptionValue } = this.state;
+    const { dropdownVisible, dropdownActiveIndex } = this.state;
 
     if (!dropdownVisible) {
       return;
     }
+    const options = this.getFilterdOptions();
+
+    let index = dropdownActiveIndex;
+
+    index = Math.max(0, Math.min(options.length - 1, index));
 
     switch (keyCode) {
       case KEY_DOWN:
-        this.setMentionSelectedValue(1);
+        index += 1;
+        index = index % options.length;
         break;
       case KEY_UP:
-        this.setMentionSelectedValue(-1);
+        index -= 1;
+        index = (index + options.length) % options.length;
         break;
       case KEY_ENTER:
         evt.preventDefault();
-        this.toggleOption(mentionOptionValue);
-        break;
+        this.toggleOption(options[dropdownActiveIndex].value);
+        return;
     }
-  };
-
-  // 设置当前选中 并滚动 如有需要
-  setMentionSelectedValue = (step: number) => {
-    const { mentionOptionValue, mentionOptions } = this.state;
-
-    let index = mentionOptions.indexOf(mentionOptionValue);
-    if (index === -1) {
-      index = 0;
-    } else {
-      index += step;
-    }
-
-    index = Math.max(0, Math.min(index, mentionOptions.length - 1));
 
     this.setState({
-      mentionOptionValue: mentionOptions[index]
+      dropdownActiveIndex: index
     });
   };
 
+  /**
+   * 选中
+   */
   toggleOption = (value: any) => {
     if (this.lastMeta !== null) {
       const { index, prefix } = this.lastMeta;
@@ -273,42 +311,58 @@ export default class Mention extends React.Component<
 
     this.setFocus();
     this.resetMentionState();
+
+    if ('onSearch' in this.props && typeof this.props.onSearch === 'function') {
+      this.props.onSearch(value);
+    }
   };
 
   handleChange = (evt: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = evt.target.value;
 
-    const current = this.state.value;
+    const { value: current, mentionOptions } = this.state;
 
-    // 删除模式
-    if (value.length < current.length && this.lastMeta === null) {
+    const { prefix, deleteMode, split } = this.props;
+
+    // 获取光标 因为存在从右到左选取 从左到右选取
+    const selectionEnd = Math.max(
+      evt.target.selectionStart || value.length,
+      evt.target.selectionEnd || value.length
+    );
+
+    // 当 deleteMode 是 whole 时
+    if (
+      value.length < current.length &&
+      this.lastMeta === null &&
+      deleteMode === 'whole'
+    ) {
       const newValue = updateValueWhenDelete(
         value,
-        this.getPrefix(),
-        this.props.split!
+        current,
+        getPrefix(prefix!),
+        split!,
+        selectionEnd,
+        createMentionDeleteModeValidator(mentionOptions)
       );
-
-      this.setState({
-        dropdownVisible: false
-      });
-      this.notifyChange(newValue);
-
-      return;
+      if (newValue !== null) {
+        this.resetMentionState();
+        this.notifyChange(newValue);
+        return;
+      }
     }
-
     this.handleTriggerMention(value);
   };
 
   handleTriggerMention = (value: string) => {
-    const prefix = this.getPrefix();
+    const prefix = getPrefix(this.props.prefix!);
 
     const meta = detectLastMentioned(value, prefix);
     this.lastMeta = meta;
 
-    // 关闭下拉
+    // 说明没有 @
     if (meta === null) {
-      this.notifyChange(value);
       this.resetMentionState();
+      this.notifyChange(value);
 
       return;
     }
@@ -316,25 +370,32 @@ export default class Mention extends React.Component<
     this.notifyMention(value, meta);
   };
 
-  // 重置状态
+  /**
+   * 重置 Mention state
+   */
   resetMentionState = () => {
     this.setState({
       measureText: '',
       keyword: '',
-      mentionOptionValue: ''
+      dropdownActiveIndex: 0
     });
 
     this.setDropdownVisible(false);
     this.lastMeta = null;
   };
 
-  // 设置下拉框 确保更新其状态时 可以获得到 measure DOM 信息
+  /**
+   * 设置下拉框  确保更新其状态时 可以获得到 measure DOM 信息
+   */
   setDropdownVisible = (dropdownVisible: boolean) => {
     this.setState(() => ({
       dropdownVisible
     }));
   };
 
+  /**
+   * 通用 change 回调
+   */
   notifyChange = (value: string) => {
     if ('value' in this.props) {
       return execCb(this.props.onChange, value);
@@ -350,11 +411,9 @@ export default class Mention extends React.Component<
 
     const { content: mentionContent, index } = meta;
     const { onSearch } = props;
-    const { mentionOptions, mentionOptionValue } = this.state;
 
+    // eg hello@meszyouh => hello@
     const measureText = value.slice(0, index + 1);
-
-    const nextMentionValue = mentionOptionValue || mentionOptions[0];
 
     let params;
 
@@ -362,16 +421,18 @@ export default class Mention extends React.Component<
       params = {
         value,
         keyword: mentionContent,
-        measureText,
-        mentionOptionValue: nextMentionValue
+        measureText
       } as MentionState;
     } else {
       params = {
+        // 存在 onSearch 由外部驱动
         keyword: 'onSearch' in props ? '' : mentionContent,
-        measureText,
-        mentionOptionValue: nextMentionValue
+        measureText
       } as MentionState;
     }
+
+    // 重置为 0
+    params.dropdownActiveIndex = 0;
 
     this.notifyChange(value);
 
@@ -386,39 +447,57 @@ export default class Mention extends React.Component<
   };
 
   renderDropdown = (): React.ReactNode => {
-    const { dropdownVisible } = this.state;
+    const { dropdownVisible, dropdownActiveIndex } = this.state;
 
     if (!dropdownVisible) {
       return null;
     }
 
-    const { children } = this.props;
+    const pos = this.getCursorRect();
 
-    const rect = this.getCursorRect();
+    // 渲染时重置
+    this.dropdownItemRefs = [];
 
-    const pos = {
-      left: 0,
-      top: 0
-    };
+    const options = this.getFilterdOptions();
 
-    if (rect) {
-      pos.left = rect.left;
-      pos.top = rect.top;
-    }
+    const children = options.map((item, index) => {
+      const { onClick, ...rest } = item.props;
+
+      const handleClick = (evt: React.MouseEvent) => {
+        this.toggleOption(item.value);
+
+        if (typeof onClick === 'function') {
+          onClick(evt);
+        }
+      };
+
+      return (
+        <li
+          {...rest}
+          onClick={handleClick}
+          ref={(node: HTMLLIElement) => (this.dropdownItemRefs[index] = node)}
+          key={item.key}
+          className={`${ZyouMention.clsPrefix}__mention-dropdown-item${
+            index === dropdownActiveIndex
+              ? ` ${ZyouMention.clsPrefix}__mention-dropdown-item-active`
+              : ''
+          }`}
+        >
+          {item.children}
+        </li>
+      );
+    });
 
     return ReactDOM.createPortal(
-      <div
+      <ul
         tabIndex={0}
         onBlur={this.resetMentionState}
         onKeyDown={this.handleKeydown}
-        style={{
-          ...pos,
-          display: dropdownVisible ? '' : 'none'
-        }}
-        className={`${Mention.prefix}__mention-dropdown`}
+        style={pos}
+        className={`${ZyouMention.clsPrefix}__mention-dropdown`}
       >
         {children}
-      </div>,
+      </ul>,
       document.body
     );
   };
@@ -430,6 +509,7 @@ export default class Mention extends React.Component<
       children,
       onChange,
       rows,
+      placeholder,
       ...rest
     } = this.props;
 
@@ -441,26 +521,29 @@ export default class Mention extends React.Component<
       'onSearch',
       'split',
       'onBlur',
-      'onFocus'
+      'onFocus',
+      'defaultValue',
+      'deleteMode'
     ]);
 
     const elStyle = {
       ...style,
-      ...Mention.style
+      ...ZyouMention.style
     };
 
-    const wrapperClasName = `${Mention.prefix}__mention${
+    const wrapperClasName = `${ZyouMention.clsPrefix}__mention${
       className ? ` ${className}` : ''
     }`;
 
-    const inputClassName = `${Mention.prefix}__mention-input`;
+    const inputClassName = `${ZyouMention.clsPrefix}__mention-input`;
 
-    const measureClassName = `${Mention.prefix}__mention-measure`;
+    const measureClassName = `${ZyouMention.clsPrefix}__mention-measure`;
 
     return (
-      <Context.Provider value={this.getContextOptions()}>
+      <React.Fragment>
         <div {...props} style={elStyle} className={wrapperClasName}>
           <textarea
+            placeholder={placeholder}
             onKeyDown={this.handleKeydown}
             onBlur={this.handleBlur}
             onFocus={this.handleFocus}
@@ -481,7 +564,7 @@ export default class Mention extends React.Component<
           </div>
         </div>
         {this.renderDropdown()}
-      </Context.Provider>
+      </React.Fragment>
     );
   }
 }

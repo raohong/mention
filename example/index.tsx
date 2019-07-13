@@ -1,14 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import Mention from '../src';
+import ZyouMention from '../src';
 
-const { MentionOption } = Mention;
+const { Option } = ZyouMention;
 
 const defaultList = [
   {
     name: 'bob',
     value: 'bob'
+  },
+  {
+    name: 'bob',
+    value: 'bo1b'
   },
   {
     name: 'meszyouh',
@@ -18,10 +22,7 @@ const defaultList = [
     name: 'meyz',
     value: 'meyz'
   },
-  {
-    name: 'bob',
-    value: 'bo1b'
-  },
+
   {
     name: 'meszyouh',
     value: 'mesz2youh'
@@ -53,16 +54,22 @@ const defaultList = [
 ];
 
 const App = () => {
-  const [list, setList] = React.useState<any[]>(defaultList);
+  const [list, _] = React.useState<any[]>(defaultList);
+  const [value, setValue] = React.useState<string>('');
 
   return (
-    <Mention rows={6}>
-      {list.map(item => (
-        <MentionOption value={item.value} key={item.value}>
-          {item.name}
-        </MentionOption>
-      ))}
-    </Mention>
+    <div>
+      <ZyouMention value={value} onChange={setValue} rows={6}>
+        {list.map(item => (
+          <Option value={item.value} key={item.value}>
+            {item.name}
+          </Option>
+        ))}
+      </ZyouMention>
+      <pre style={{ backgroundColor: '#eeeeee' }}>
+        <code>{value}</code>
+      </pre>
+    </div>
   );
 };
 

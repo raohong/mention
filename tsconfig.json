@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "outDir": "build/dist",
+    "outDir": "lib",
     "module": "esnext",
-    "target": "esnext",
+    "target": "es2015",
     "lib": ["esnext", "dom"],
-    "sourceMap": true,
+    "sourceMap": false,
     "baseUrl": ".",
     "jsx": "react",
     "allowSyntheticDefaultImports": true,
@@ -13,21 +13,21 @@
     "noImplicitReturns": true,
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
-    "allowJs": true,
     "experimentalDecorators": true,
     "strict": true,
+
     "paths": {
       "@/*": ["./src/*"]
     }
   },
+  "include": ["src"],
   "exclude": [
     "node_modules",
     "build",
     "scripts",
-    "acceptance-tests",
     "webpack",
     "jest",
-    "src/setupTests.ts",
+    "tests",
     "tslint:latest",
     "tslint-config-prettier"
   ]

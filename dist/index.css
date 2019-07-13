@@ -10,7 +10,8 @@
   border: 0;
   padding: 0;
   margin: 0;
-  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
   font-size: inherit;
   line-height: inherit;
   font-family: inherit;
@@ -24,7 +25,8 @@
 .zyou__mention .zyou__mention-measure:before {
   padding: 0;
   margin: 0;
-  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
 }
 .zyou__mention .zyou__mention-input {
   resize: none;
@@ -41,7 +43,8 @@
 .zyou__mention-dropdown {
   position: absolute;
   list-style: none;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  -webkit-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   background-color: #fff;
   outline: 0;
   max-height: 250px;
@@ -67,6 +70,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  -webkit-transition: background-color 0.2s ease-in;
   transition: background-color 0.2s ease-in;
 }
 .zyou__mention-dropdown-item:hover,
