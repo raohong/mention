@@ -8,6 +8,5 @@ cache:
 script:
   - npm run test --coverage
   - npm run coveralls
-
 service_name: travis-pro
 repo_token: gRF9r73O3gXpAa76rNcTwP0wQLX3q8ARu
