@@ -10,7 +10,7 @@
     "test": "cross-env NODE_ENV=test jest",
     "dev": "parcel example/index.html --open",
     "build-demo": "rimraf build &&  parcel build example/index.html --out-dir build --public-url ./ --no-source-maps",
-    "coveralls": "cat ./coverage/lcov.info > ./node_modules/coveralls/bin/coveralls.js",
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "build": "rimraf dist &&  rollup --config",
     "eslint": "eslint tests",
     "tslint": "tslint -p tsconfig.json",
