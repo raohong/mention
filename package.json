@@ -10,7 +10,7 @@
     "test": "jest",
     "dev": "parcel example/index.html --open",
     "build-demo": "rimraf build &&  parcel build example/index.html --out-dir build --public-url ./ --no-source-maps",
-    "coveralls": "jest --coverage --coverageReporters=text-lcov | coveralls",
+    "coveralls": "npm run test --coverage --coverageReporters=text-lcov | coveralls",
     "build": "rimraf dist &&  rollup --config",
     "eslint": "eslint tests",
     "tslint": "tslint -p tsconfig.json",
