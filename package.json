@@ -6,7 +6,7 @@
   "module": "dist/index.js",
   "typings": "./index.d.ts",
   "scripts": {
-    "prettier": "prettier --config .prettierrc --debug-check  \"./{src,tests}/**/*.{less,ts,tsx,js}\" \"!./{build.dist}/**\"",
+    "prettier": "prettier --config .prettierrc --write \"./{src,tests}/**/*.{less,ts,tsx,js}\" \"!./{build.dist}/**\"",
     "test": "jest",
     "dev": "parcel example/index.html --open",
     "build-demo": "rimraf build &&  parcel build example/index.html --out-dir build --public-url ./ --no-source-maps",
@@ -44,14 +44,6 @@
     "**/*.{js,jsx}": "npm run eslint",
     "**/*.{ts,tsx,js,jsx}": [
       "npm run prettier",
-      "git add"
-    ],
-    "*.{js,css,json,md}": [
-      "prettier --write",
-      "git add"
-    ],
-    "*.js": [
-      "eslint --fix",
       "git add"
     ]
   },
