@@ -45,6 +45,10 @@
     "**/*.{ts,tsx,js,jsx}": [
       "npm run prettier",
       "git add"
+    ],
+    "*.{json,md}": [
+      "prettier --write",
+      "git add"
     ]
   },
   "devDependencies": {
