@@ -46,7 +46,7 @@
       "npm run prettier",
       "git add"
     ],
-    "*.{json,md}": [
+    "*.{json,md,yml}": [
       "prettier --write",
       "git add"
     ]
