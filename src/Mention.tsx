@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import omit from 'omit.js';
 import PropTypes from 'prop-types';
 
+import AutoResize, { AutoResizeProps } from './AutoResize';
 import MentionOption from './Option';
 import {
   detectLastMentioned,
@@ -18,8 +19,9 @@ import {
 import { KEY_DOWN, KEY_UP, KEY_ENTER } from './constants';
 import './style.less';
 
-export interface MentionProps {
+export interface MentionProps extends AutoResizeProps {
   value?: string;
+  autoResize?: boolean;
   defaultValue?: string;
   placeholder?: string;
   deleteMode?: 'normal' | 'whole';
@@ -30,7 +32,6 @@ export interface MentionProps {
   onFocus?: (evt: React.FocusEvent) => void;
   style?: React.CSSProperties;
   className?: string;
-  rows?: number;
   prefix?: string | string[];
   split?: string;
   [x: string]: any;
@@ -82,6 +83,7 @@ export default class ZyouMention extends React.Component<
     rows: 3,
     split: ' ',
     prefix: '@',
+    autoResize: true,
     placement: 'bottom',
     /**
      * After selecting a mention,
@@ -93,6 +95,7 @@ export default class ZyouMention extends React.Component<
 
   static propTypes = {
     value: PropTypes.string,
+
     deleteMode: PropTypes.oneOf(['normal', 'whole']),
     placement: PropTypes.oneOf(['top', 'bottom']),
     defaultValue: PropTypes.string,
@@ -103,12 +106,12 @@ export default class ZyouMention extends React.Component<
     onFocus: PropTypes.func,
     style: PropTypes.object,
     className: PropTypes.string,
-    rows: PropTypes.number,
     split: PropTypes.string,
     prefix: PropTypes.oneOfType([
       PropTypes.string,
       PropTypes.arrayOf(PropTypes.string)
-    ])
+    ]),
+    ...AutoResize.propTypes
   } as ComponentPropTypes<MentionProps>;
 
   private cursorRef: React.RefObject<HTMLSpanElement>;
@@ -232,6 +235,7 @@ export default class ZyouMention extends React.Component<
   handleFocus = (evt: React.FocusEvent) => {
     const { onFocus } = this.props;
 
+    console.log('focus', this.inputRef);
     if (typeof onFocus === 'function') {
       onFocus(evt);
     }
@@ -508,8 +512,9 @@ export default class ZyouMention extends React.Component<
       className,
       children,
       onChange,
-      rows,
       placeholder,
+      rows,
+      autoResize,
       ...rest
     } = this.props;
 
@@ -539,21 +544,23 @@ export default class ZyouMention extends React.Component<
 
     const measureClassName = `${ZyouMention.clsPrefix}__mention-measure`;
 
+    const input = (
+      <textarea
+        placeholder={placeholder}
+        onKeyDown={this.handleKeydown}
+        onBlur={this.handleBlur}
+        onFocus={this.handleFocus}
+        ref={this.inputRef}
+        value={value}
+        onChange={this.handleChange}
+        className={inputClassName}
+      />
+    );
+
     return (
       <React.Fragment>
         <div {...props} style={elStyle} className={wrapperClasName}>
-          <textarea
-            placeholder={placeholder}
-            onKeyDown={this.handleKeydown}
-            onBlur={this.handleBlur}
-            onFocus={this.handleFocus}
-            ref={this.inputRef}
-            value={value}
-            onChange={this.handleChange}
-            rows={rows}
-            className={inputClassName}
-          />
-
+          {autoResize ? <AutoResize rows={rows}>{input}</AutoResize> : input}
           <div className={measureClassName}>
             {measureText ? (
               <React.Fragment>
