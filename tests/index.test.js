@@ -220,3 +220,5 @@ describe('Analog delete interaction  after select', () => {
     expect(wrapper.state('value')).toEqual('');
   });
 });
+
+afterAll(() => setTimeout(() => process.exit(), 1000));
