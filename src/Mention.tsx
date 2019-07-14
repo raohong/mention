@@ -60,11 +60,11 @@ interface MentionState {
   children: React.ReactNode;
 }
 
-type CursorPosition = {
+interface CursorPosition {
   left: number;
   top: number | 'auto';
   bottom: number | 'auto';
-};
+}
 
 export default class ZyouMention extends React.Component<
   MentionProps,
@@ -235,7 +235,6 @@ export default class ZyouMention extends React.Component<
   handleFocus = (evt: React.FocusEvent) => {
     const { onFocus } = this.props;
 
-    console.log('focus', this.inputRef);
     if (typeof onFocus === 'function') {
       onFocus(evt);
     }
@@ -411,7 +410,7 @@ export default class ZyouMention extends React.Component<
   };
 
   notifyMention = (value: string, meta: ILastMentionedMeta) => {
-    const { props } = this;
+    const props = this.props;
 
     const { content: mentionContent, index } = meta;
     const { onSearch } = props;

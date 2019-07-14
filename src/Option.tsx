@@ -14,9 +14,9 @@ const ZyouMentionOption: React.FunctionComponent<ZyouMentionOptionProps> = ({
 };
 
 ZyouMentionOption.propTypes = {
-  value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+  className: PropTypes.string,
   style: PropTypes.object,
-  className: PropTypes.string
+  value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired
 };
 
 export default ZyouMentionOption;

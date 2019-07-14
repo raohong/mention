@@ -34,7 +34,6 @@ export default class AutoResize extends React.Component<AutoResizeProps> {
 
     this.setRows(el, rows!);
 
-    console.log(rows);
     if (typeof rows === 'object') {
       this.adjustHeight(el);
     }
@@ -59,16 +58,16 @@ export default class AutoResize extends React.Component<AutoResizeProps> {
   setRows = (el: HTMLElement, rows: Rows) => {
     const style = getComputedStyle(el);
 
-    const baseSize = parseInt(style.lineHeight || '0');
+    const baseSize = parseInt(style.lineHeight || '0', 10);
 
     let padding: number = 0;
 
     if (style.boxSizing !== 'content-box') {
       padding =
-        parseInt(style.paddingTop || '0') +
-        parseInt(style.paddingBottom || '0') +
-        parseInt(style.borderTop || '0') +
-        parseInt(style.borderBottom || '0');
+        parseInt(style.paddingTop || '0', 10) +
+        parseInt(style.paddingBottom || '0', 10) +
+        parseInt(style.borderTop || '0', 10) +
+        parseInt(style.borderBottom || '0', 10);
     }
 
     if (typeof rows === 'number') {
@@ -98,16 +97,15 @@ export default class AutoResize extends React.Component<AutoResizeProps> {
     const padding =
       borderBox === 'content-box'
         ? 0
-        : parseInt(style.borderTop || '0') +
-          parseFloat(style.borderBottom || '0');
+        : parseInt(style.borderTop || '0', 10) +
+          parseInt(style.borderBottom || '0', 10);
 
     const height = el.scrollHeight + padding;
 
-    if (style.maxHeight && height > parseInt(style.maxHeight)) {
-      el.style.overflowY = 'auto';
-    } else {
-      el.style.overflowY = 'hidden';
-    }
+    el.style.overflowY =
+      style.maxHeight && height > parseInt(style.maxHeight, 10)
+        ? 'auto'
+        : 'hidden';
 
     el.style.height = height + 'px';
   };

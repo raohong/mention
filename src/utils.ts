@@ -29,9 +29,9 @@ export const detectLastMentioned = (
   }
 
   const meta: ILastMentionedMeta = {
-    index: match.index!,
+    content: match[2] || '',
     prefix: match[1],
-    content: match[2] || ''
+    index: match.index!
   };
   return meta;
 };
@@ -54,13 +54,13 @@ const deepGetMetaInfo = (
   str: string,
   prefix: string[],
   backup: string[],
-  validator: Function,
+  validator: (value: string) => boolean,
   offset: number = -1
 ): DeepGetMetaResult => {
   let meta = detectLastMentioned(str, prefix);
 
   if (typeof validator === 'function' && meta !== null) {
-    let flag = validator(meta.content);
+    const flag = validator(meta.content);
 
     if (!flag && backup.length) {
       return deepGetMetaInfo(
@@ -107,14 +107,8 @@ export const updateValueWhenDelete = (
   }
 
   const restFilter = new RegExp(`^[${regEscape(split)}]`);
-
-  let restText: string;
-
-  if (info.offset >= 0) {
-    restText = rest.slice(info.offset).replace(restFilter, '');
-  } else {
-    restText = rest;
-  }
+  const restText: string =
+    info.offset >= 0 ? rest.slice(info.offset).replace(restFilter, '') : rest;
 
   return info.raw.slice(0, Math.max(0, info.meta.index - 1)) + restText;
 };
@@ -137,6 +131,7 @@ export const insertMention = (
   return `${value}${gap}${prefix}${mention} `;
 };
 
+// tslint:disable-next-line: ban-types
 export const execCb = (cb: Function | undefined, ...rest: any[]) => {
   if (typeof cb === 'function') {
     cb(...rest);
