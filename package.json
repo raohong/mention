@@ -7,7 +7,7 @@
   "typings": "./index.d.ts",
   "scripts": {
     "prettier": "prettier --config .prettierrc --write \"./{src,tests}/**/*.{less,ts,tsx,js}\" \"!./{build.dist}/**\"",
-    "test": "jest",
+    "test": "cross-env NODE_ENV=test jest",
     "dev": "parcel example/index.html --open",
     "build-demo": "rimraf build &&  parcel build example/index.html --out-dir build --public-url ./ --no-source-maps",
     "coveralls": "npm run test --coverage --coverageReporters=text-lcov | coveralls",
@@ -67,6 +67,7 @@
     "babel-eslint": "^10.0.2",
     "babel-jest": "^24.8.0",
     "coveralls": "^3.0.5",
+    "cross-env": "^5.2.0",
     "enzyme": "^3.10.0",
     "enzyme-adapter-react-16": "^1.14.0",
     "eslint": "^6.0.1",
