@@ -55,20 +55,22 @@ const defaultList = [
 
 const App = () => {
   const [list, _] = React.useState<any[]>(defaultList);
-  const [value, setValue] = React.useState<string>('');
 
   return (
     <div>
-      <ZyouMention value={value} onChange={setValue} rows={6}>
+      <ZyouMention
+        defaultValue='joioioioioioioioioioioioioioioioioioioioioi'
+        rows={{
+          max: 10,
+          min: 2
+        }}
+      >
         {list.map(item => (
           <Option value={item.value} key={item.value}>
             {item.name}
           </Option>
         ))}
       </ZyouMention>
-      <pre style={{ backgroundColor: '#eeeeee' }}>
-        <code>{value}</code>
-      </pre>
     </div>
   );
 };

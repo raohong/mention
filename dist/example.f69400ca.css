@@ -19,25 +19,23 @@
   border: 0;
   padding: 4px 10px;
   margin: 0;
-  -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  box-sizing: border-box;
   font-size: inherit;
   line-height: inherit;
   font-family: inherit;
   max-width: 100%;
   display: inline-block;
   width: 100%;
+  background-image: none;
   resize: none;
-  -webkit-transition: all 0.2s;
-  transition: all 0.2s;
   border: 1px solid transparent;
+  overflow-y: hidden;
 }
 .zyou__mention-input:after,
 .zyou__mention-input:before {
   padding: 0;
   margin: 0;
-  -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  box-sizing: border-box;
 }
 .zyou__mention-input::-webkit-scrollbar {
   width: 8px;
@@ -54,21 +52,20 @@
 .zyou__mention-input:focus {
   outline: 0;
   border-color: #425bff;
-  -webkit-box-shadow: 0 0 2px #8696ff;
-          box-shadow: 0 0 2px #8696ff;
+  box-shadow: 0 0 2px #8696ff;
 }
 .zyou__mention-measure {
   outline: 0;
   border: 0;
   padding: 4px 10px;
   margin: 0;
-  -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  box-sizing: border-box;
   font-size: inherit;
   line-height: inherit;
   font-family: inherit;
   max-width: 100%;
   display: inline-block;
+  background-image: none;
   position: absolute;
   left: 0;
   top: 0;
@@ -76,19 +73,18 @@
   z-index: -1;
   max-height: 100%;
   background-color: transparent;
+  visibility: hidden;
 }
 .zyou__mention-measure:after,
 .zyou__mention-measure:before {
   padding: 0;
   margin: 0;
-  -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  box-sizing: border-box;
 }
 .zyou__mention-dropdown {
   position: absolute;
   list-style: none;
-  -webkit-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   background-color: #fff;
   outline: 0;
   max-height: 250px;
@@ -114,7 +110,6 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  -webkit-transition: background-color 0.2s ease-in;
   transition: background-color 0.2s ease-in;
 }
 .zyou__mention-dropdown-item:hover,
@@ -122,3 +117,6 @@
 .zyou__mention-dropdown-item:active {
   background-color: #e6f7ff;
 }
+
+
+/*# sourceMappingURL=/example.f69400ca.css.map */

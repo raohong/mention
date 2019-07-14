@@ -346,6 +346,27 @@ function (_React$Component) {
     _this.inputRef = void 0;
     _this.lastMeta = null;
 
+    _this.aujustInputElHeight = function () {
+      var el = _this.inputRef.current;
+      return;
+
+      var scrollHeight = Math.ceil(el.scrollHeight);
+      var offsetHeight = Math.ceil(el.offsetHeight);
+      console.log(scrollHeight, offsetHeight);
+
+      if (offsetHeight < scrollHeight) {
+        setTimeout(function () {
+          window.requestAnimationFrame(function () {
+            _this.setState(function () {
+              return {
+                height: scrollHeight
+              };
+            });
+          });
+        }, 100);
+      }
+    };
+
     _this.getCursorRect = function () {
       var node = _this.cursorRef.current;
       var ret = {
@@ -629,8 +650,24 @@ function (_React$Component) {
       }, children), document.body);
     };
 
+    var height = 'auto';
+
+    if (_props.style && 'height' in _props.style && _props.style.height) {
+      height = _props.style.height;
+
+      if (typeof height !== 'number') {
+        height = parseInt(height);
+        height = isNaN(height) ? 'auto' : height;
+      }
+    }
+
+    if (typeof height !== 'number') {
+      height = 'auto';
+    }
+
     _this.state = {
       value: _props.defaultValue || '',
+      height: height,
       measureText: '',
       keyword: '',
       dropdownVisible: false,
@@ -644,6 +681,11 @@ function (_React$Component) {
   }
 
   _createClass(ZyouMention, [{
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      this.aujustInputElHeight();
+    }
+  }, {
     key: "componentDidUpdate",
     value: function componentDidUpdate() {
       this.getCursorRect();
@@ -653,8 +695,9 @@ function (_React$Component) {
       if (item && item.scrollIntoView) {
         item.scrollIntoView(false);
       }
-    } // 获取 测量光标位置
 
+      this.aujustInputElHeight();
+    }
   }, {
     key: "render",
     value: function render() {
@@ -670,10 +713,13 @@ function (_React$Component) {
 
       var _this$state5 = this.state,
           value = _this$state5.value,
-          measureText = _this$state5.measureText;
+          measureText = _this$state5.measureText,
+          height = _this$state5.height;
       var props = omit(rest, ['value', 'prefix', 'onSearch', 'split', 'onBlur', 'onFocus', 'defaultValue', 'deleteMode']);
 
-      var elStyle = _objectSpread2({}, style, {}, ZyouMention.style);
+      var elStyle = _objectSpread2({}, style, {}, ZyouMention.style, {
+        height: height
+      });
 
       var wrapperClasName = "".concat(ZyouMention.clsPrefix, "__mention").concat(className ? " ".concat(className) : '');
       var inputClassName = "".concat(ZyouMention.clsPrefix, "__mention-input");
