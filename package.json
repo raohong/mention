@@ -29,6 +29,7 @@
   "author": "raohong",
   "license": "MIt",
   "jest": {
+    "collectCoverage": true,
     "setupFilesAfterEnv": [
       "./node_modules/jest-enzyme/lib/index.js"
     ],
