@@ -187,6 +187,151 @@ function _possibleConstructorReturn(self, call) {
   return _assertThisInitialized(self);
 }
 
+var AutoResize =
+/*#__PURE__*/
+function (_React$Component) {
+  _inherits(AutoResize, _React$Component);
+
+  function AutoResize() {
+    var _getPrototypeOf2;
+
+    var _this;
+
+    _classCallCheck(this, AutoResize);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _possibleConstructorReturn(this, (_getPrototypeOf2 = _getPrototypeOf(AutoResize)).call.apply(_getPrototypeOf2, [this].concat(args)));
+    _this.el = null;
+
+    _this.setRows = function (el, rows) {
+      var style = getComputedStyle(el);
+      var baseSize = parseInt(style.lineHeight || '0', 10);
+      var padding = 0;
+
+      if (style.boxSizing !== 'content-box') {
+        padding = parseInt(style.paddingTop || '0', 10) + parseInt(style.paddingBottom || '0', 10) + parseInt(style.borderTop || '0', 10) + parseInt(style.borderBottom || '0', 10);
+      }
+
+      if (typeof rows === 'number') {
+        el.style.height = baseSize * rows + padding + 'px';
+        el.style.overflowY = 'auto';
+        return;
+      }
+
+      el.style.overflowY = 'hidden';
+
+      if (typeof rows.min === 'number') {
+        el.style.minHeight = baseSize * rows.min + padding + 'px';
+      }
+
+      if (typeof rows.max === 'number') {
+        el.style.maxHeight = baseSize * rows.max + padding + 'px';
+      }
+    };
+
+    _this.adjustHeight = function (el) {
+      var style = getComputedStyle(el);
+      var borderBox = style.boxSizing;
+      el.style.height = 'auto';
+      var padding = borderBox === 'content-box' ? 0 : parseInt(style.borderTop || '0', 10) + parseInt(style.borderBottom || '0', 10);
+      var height = el.scrollHeight + padding;
+      el.style.overflowY = style.maxHeight && height > parseInt(style.maxHeight, 10) ? 'auto' : 'hidden';
+      el.style.height = height + 'px';
+    };
+
+    _this.setRef = function (node) {
+      var children = _this.props.children;
+      var child = React.Children.only(children);
+      _this.el = node;
+
+      if (_typeof(child) === 'object' && child !== null && 'ref' in child) {
+        // @ts-ignore
+        var ref = child.ref;
+
+        if (!ref) {
+          return;
+        }
+
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (_typeof(ref) === 'object') {
+          ref.current = node;
+        }
+      }
+    };
+
+    return _this;
+  }
+
+  _createClass(AutoResize, [{
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      var el = this.el;
+      var rows = this.props.rows;
+
+      if (el === null) {
+        return;
+      }
+
+      this.setRows(el, rows);
+
+      if (_typeof(rows) === 'object') {
+        this.adjustHeight(el);
+      }
+    }
+  }, {
+    key: "componentDidUpdate",
+    value: function componentDidUpdate(prev) {
+      var el = this.el;
+      var rows = this.props.rows;
+
+      if (el === null) {
+        return;
+      }
+
+      if (prev.rows !== rows) {
+        this.setRows(el, rows);
+      }
+
+      if (_typeof(rows) === 'object') {
+        this.adjustHeight(el);
+      }
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var children = this.props.children;
+      var child = React.Children.only(children);
+
+      if (!child || _typeof(child) !== 'object') {
+        return child;
+      }
+
+      var style = 'props' in child ? child.props.style || {} : {};
+      delete style.height;
+      return React.cloneElement(child, {
+        ref: this.setRef,
+        style: style
+      });
+    }
+  }]);
+
+  return AutoResize;
+}(React.Component);
+
+AutoResize.propTypes = {
+  rows: PropTypes.oneOfType([PropTypes.number, PropTypes.shape({
+    min: PropTypes.number,
+    max: PropTypes.number
+  })])
+};
+AutoResize.defaultProps = {
+  rows: 1
+};
+
 var regEscape = function regEscape(str) {
   return str.replace(/[*+?{}[\]().^$\\/-]/g, '\\$&');
 };
@@ -207,9 +352,9 @@ var detectLastMentioned = function detectLastMentioned(value, prefix) {
   }
 
   var meta = {
-    index: match.index,
+    content: match[2] || '',
     prefix: match[1],
-    content: match[2] || ''
+    index: match.index
   };
   return meta;
 };
@@ -264,14 +409,7 @@ var updateValueWhenDelete = function updateValueWhenDelete(value, current, prefi
   }
 
   var restFilter = new RegExp("^[".concat(regEscape(split), "]"));
-  var restText;
-
-  if (info.offset >= 0) {
-    restText = rest.slice(info.offset).replace(restFilter, '');
-  } else {
-    restText = rest;
-  }
-
+  var restText = info.offset >= 0 ? rest.slice(info.offset).replace(restFilter, '') : rest;
   return info.raw.slice(0, Math.max(0, info.meta.index - 1)) + restText;
 };
 var insertMention = function insertMention(value, mention, prefix, split) {
@@ -283,7 +421,8 @@ var insertMention = function insertMention(value, mention, prefix, split) {
   }
 
   return "".concat(value).concat(gap).concat(prefix).concat(mention, " ");
-};
+}; // tslint:disable-next-line: ban-types
+
 var execCb = function execCb(cb) {
   if (typeof cb === 'function') {
     for (var _len = arguments.length, rest = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -345,27 +484,6 @@ function (_React$Component) {
     _this.dropdownItemRefs = [];
     _this.inputRef = void 0;
     _this.lastMeta = null;
-
-    _this.aujustInputElHeight = function () {
-      var el = _this.inputRef.current;
-      return;
-
-      var scrollHeight = Math.ceil(el.scrollHeight);
-      var offsetHeight = Math.ceil(el.offsetHeight);
-      console.log(scrollHeight, offsetHeight);
-
-      if (offsetHeight < scrollHeight) {
-        setTimeout(function () {
-          window.requestAnimationFrame(function () {
-            _this.setState(function () {
-              return {
-                height: scrollHeight
-              };
-            });
-          });
-        }, 100);
-      }
-    };
 
     _this.getCursorRect = function () {
       var node = _this.cursorRef.current;
@@ -564,9 +682,7 @@ function (_React$Component) {
     };
 
     _this.notifyMention = function (value, meta) {
-      var _assertThisInitialize = _assertThisInitialized(_this),
-          props = _assertThisInitialize.props;
-
+      var props = _this.props;
       var mentionContent = meta.content,
           index = meta.index;
       var onSearch = props.onSearch; // eg hello@meszyouh => hello@
@@ -650,24 +766,8 @@ function (_React$Component) {
       }, children), document.body);
     };
 
-    var height = 'auto';
-
-    if (_props.style && 'height' in _props.style && _props.style.height) {
-      height = _props.style.height;
-
-      if (typeof height !== 'number') {
-        height = parseInt(height);
-        height = isNaN(height) ? 'auto' : height;
-      }
-    }
-
-    if (typeof height !== 'number') {
-      height = 'auto';
-    }
-
     _this.state = {
       value: _props.defaultValue || '',
-      height: height,
       measureText: '',
       keyword: '',
       dropdownVisible: false,
@@ -681,11 +781,6 @@ function (_React$Component) {
   }
 
   _createClass(ZyouMention, [{
-    key: "componentDidMount",
-    value: function componentDidMount() {
-      this.aujustInputElHeight();
-    }
-  }, {
     key: "componentDidUpdate",
     value: function componentDidUpdate() {
       this.getCursorRect();
@@ -695,9 +790,8 @@ function (_React$Component) {
       if (item && item.scrollIntoView) {
         item.scrollIntoView(false);
       }
+    } // 获取 测量光标位置
 
-      this.aujustInputElHeight();
-    }
   }, {
     key: "render",
     value: function render() {
@@ -707,27 +801,22 @@ function (_React$Component) {
           className = _this$props2.className,
           children = _this$props2.children,
           onChange = _this$props2.onChange,
-          rows = _this$props2.rows,
           placeholder = _this$props2.placeholder,
-          rest = _objectWithoutProperties(_this$props2, ["style", "className", "children", "onChange", "rows", "placeholder"]);
+          rows = _this$props2.rows,
+          autoResize = _this$props2.autoResize,
+          rest = _objectWithoutProperties(_this$props2, ["style", "className", "children", "onChange", "placeholder", "rows", "autoResize"]);
 
       var _this$state5 = this.state,
           value = _this$state5.value,
-          measureText = _this$state5.measureText,
-          height = _this$state5.height;
+          measureText = _this$state5.measureText;
       var props = omit(rest, ['value', 'prefix', 'onSearch', 'split', 'onBlur', 'onFocus', 'defaultValue', 'deleteMode']);
 
-      var elStyle = _objectSpread2({}, style, {}, ZyouMention.style, {
-        height: height
-      });
+      var elStyle = _objectSpread2({}, style, {}, ZyouMention.style);
 
       var wrapperClasName = "".concat(ZyouMention.clsPrefix, "__mention").concat(className ? " ".concat(className) : '');
       var inputClassName = "".concat(ZyouMention.clsPrefix, "__mention-input");
       var measureClassName = "".concat(ZyouMention.clsPrefix, "__mention-measure");
-      return React.createElement(React.Fragment, null, React.createElement("div", _extends({}, props, {
-        style: elStyle,
-        className: wrapperClasName
-      }), React.createElement("textarea", {
+      var input = React.createElement("textarea", {
         placeholder: placeholder,
         onKeyDown: this.handleKeydown,
         onBlur: this.handleBlur,
@@ -735,9 +824,14 @@ function (_React$Component) {
         ref: this.inputRef,
         value: value,
         onChange: this.handleChange,
-        rows: rows,
         className: inputClassName
-      }), React.createElement("div", {
+      });
+      return React.createElement(React.Fragment, null, React.createElement("div", _extends({}, props, {
+        style: elStyle,
+        className: wrapperClasName
+      }), autoResize ? React.createElement(AutoResize, {
+        rows: rows
+      }, input) : input, React.createElement("div", {
         className: measureClassName
       }, measureText ? React.createElement(React.Fragment, null, measureText, React.createElement("span", {
         ref: this.cursorRef
@@ -790,6 +884,7 @@ ZyouMention.defaultProps = {
   rows: 3,
   split: ' ',
   prefix: '@',
+  autoResize: true,
   placement: 'bottom',
 
   /**
@@ -799,7 +894,7 @@ ZyouMention.defaultProps = {
    */
   deleteMode: 'whole'
 };
-ZyouMention.propTypes = {
+ZyouMention.propTypes = _objectSpread2({
   value: PropTypes.string,
   deleteMode: PropTypes.oneOf(['normal', 'whole']),
   placement: PropTypes.oneOf(['top', 'bottom']),
@@ -811,10 +906,9 @@ ZyouMention.propTypes = {
   onFocus: PropTypes.func,
   style: PropTypes.object,
   className: PropTypes.string,
-  rows: PropTypes.number,
   split: PropTypes.string,
   prefix: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)])
-};
+}, AutoResize.propTypes);
 
 var ZyouMentionOption = function ZyouMentionOption(_ref) {
   var children = _ref.children;
@@ -822,9 +916,9 @@ var ZyouMentionOption = function ZyouMentionOption(_ref) {
 };
 
 ZyouMentionOption.propTypes = {
-  value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+  className: PropTypes.string,
   style: PropTypes.object,
-  className: PropTypes.string
+  value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired
 };
 
 ZyouMention.Option = ZyouMentionOption;

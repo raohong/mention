@@ -18,7 +18,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run link-staged"
+      "pre-commit": "lint-staged"
     }
   },
   "keywords": [
@@ -44,6 +44,14 @@
     "**/*.{js,jsx}": "npm run eslint",
     "**/*.{ts,tsx,js,jsx}": [
       "npm run prettier",
+      "git add"
+    ],
+    "*.{js,css,json,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.js": [
+      "eslint --fix",
       "git add"
     ]
   },
