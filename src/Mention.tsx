@@ -95,7 +95,6 @@ export default class ZyouMention extends React.Component<
 
   static propTypes = {
     value: PropTypes.string,
-
     deleteMode: PropTypes.oneOf(['normal', 'whole']),
     placement: PropTypes.oneOf(['top', 'bottom']),
     defaultValue: PropTypes.string,
