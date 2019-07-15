@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import omit from 'omit.js';
 import PropTypes from 'prop-types';
 
@@ -28,6 +27,7 @@ export interface MentionProps extends AutoResizeProps {
   placement?: 'top' | 'bottom';
   onChange?: (value: string) => void;
   onSearch?: (value: string) => void;
+  onSelect?: (value: string) => void;
   onBlur?: (evt: React.FocusEvent) => void;
   onFocus?: (evt: React.FocusEvent) => void;
   style?: React.CSSProperties;
@@ -84,7 +84,7 @@ export default class ZyouMention extends React.Component<
     split: ' ',
     prefix: '@',
     autoResize: true,
-    placement: 'bottom',
+    placement: 'top',
     /**
      * After selecting a mention,
      * if the text behind the cursor can match from the data source,
@@ -100,6 +100,7 @@ export default class ZyouMention extends React.Component<
     defaultValue: PropTypes.string,
     placeholder: PropTypes.string,
     onSearch: PropTypes.func,
+    onSelect: PropTypes.func,
     onBlur: PropTypes.func,
     onChange: PropTypes.func,
     onFocus: PropTypes.func,
@@ -166,7 +167,6 @@ export default class ZyouMention extends React.Component<
         value: getValueFromProps(child),
         children: child,
         key: getKeyFromProps(child),
-
         props:
           typeof child === 'object' && child !== null
             ? omit((child as Record<string, any>).props, ['children', 'value'])
@@ -197,22 +197,23 @@ export default class ZyouMention extends React.Component<
     };
 
     if (node) {
-      const parent = node.parentElement;
+      const parent = node.offsetParent;
       if (parent === null) {
         return ret;
       }
 
-      const rect = node.getBoundingClientRect();
+      const style = getComputedStyle(parent);
+      ret.left = node.offsetLeft + parseInt(style.borderLeft || '0', 10);
 
-      ret.left = rect.left;
-
-      const offset =
-        rect.bottom > parent.clientHeight ? parent.clientHeight : rect.bottom;
+      const offset = node.offsetTop + node.offsetHeight;
 
       if (this.props.placement === 'bottom') {
         ret.top = offset;
       } else {
-        ret.bottom = document.documentElement.clientHeight - offset;
+        ret.bottom = Math.max(
+          parseInt(style.paddingBottom || '0', 10) + parent.clientTop,
+          parent.clientHeight - offset
+        );
       }
     }
 
@@ -314,8 +315,8 @@ export default class ZyouMention extends React.Component<
     this.setFocus();
     this.resetMentionState();
 
-    if ('onSearch' in this.props && typeof this.props.onSearch === 'function') {
-      this.props.onSearch(value);
+    if ('onSelect' in this.props && typeof this.props.onSelect === 'function') {
+      this.props.onSelect(value);
     }
   };
 
@@ -490,7 +491,7 @@ export default class ZyouMention extends React.Component<
       );
     });
 
-    return ReactDOM.createPortal(
+    return (
       <ul
         tabIndex={0}
         onBlur={this.resetMentionState}
@@ -499,8 +500,7 @@ export default class ZyouMention extends React.Component<
         className={`${ZyouMention.clsPrefix}__mention-dropdown`}
       >
         {children}
-      </ul>,
-      document.body
+      </ul>
     );
   };
 
@@ -567,8 +567,8 @@ export default class ZyouMention extends React.Component<
               </React.Fragment>
             ) : null}
           </div>
+          {this.renderDropdown()}
         </div>
-        {this.renderDropdown()}
       </React.Fragment>
     );
   }
