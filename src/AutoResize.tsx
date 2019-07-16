@@ -8,6 +8,8 @@ export interface AutoResizeProps {
 }
 
 export default class AutoResize extends React.Component<AutoResizeProps> {
+  static TYPE = 'textarea';
+
   static propTypes = {
     rows: PropTypes.oneOfType([
       PropTypes.number,
@@ -138,6 +140,16 @@ export default class AutoResize extends React.Component<AutoResizeProps> {
 
     if (!child || typeof child !== 'object') {
       return child;
+    }
+
+    // @ts-ignore
+    if (!child.type) {
+      return child;
+    }
+
+    // @ts-ignore
+    if (child.type !== AutoResize.TYPE) {
+      throw new TypeError('AutoResize required a textarea');
     }
 
     const style = 'props' in child ? child.props.style || {} : {};

@@ -1,6 +1,7 @@
 import React from 'react';
 import omit from 'omit.js';
 import PropTypes from 'prop-types';
+import classnames from 'classnames';
 
 import AutoResize, { AutoResizeProps } from './AutoResize';
 import MentionOption from './Option';
@@ -58,6 +59,7 @@ interface MentionState {
   dropdownActiveIndex: number;
   mentionOptions: MentionOptionItem[];
   children: React.ReactNode;
+  focused: boolean;
 }
 
 interface CursorPosition {
@@ -129,7 +131,8 @@ export default class ZyouMention extends React.Component<
       dropdownVisible: false,
       dropdownActiveIndex: 0,
       mentionOptions: [],
-      children: null
+      children: null,
+      focused: false
     };
 
     this.cursorRef = React.createRef();
@@ -203,16 +206,22 @@ export default class ZyouMention extends React.Component<
       }
 
       const style = getComputedStyle(parent);
+
+      const clientHeight = parent.clientHeight;
+
+      // offsetLeft + borderLeft
       ret.left = node.offsetLeft + parseInt(style.borderLeft || '0', 10);
 
-      const offset = node.offsetTop + node.offsetHeight;
+      // in padding-box , offsetTop + offsetHeight
+      const offset = Math.min(node.offsetTop + node.offsetHeight, clientHeight);
 
       if (this.props.placement === 'bottom') {
         ret.top = offset;
       } else {
         ret.bottom = Math.max(
-          parseInt(style.paddingBottom || '0', 10) + parent.clientTop,
-          parent.clientHeight - offset
+          // parseInt(style.paddingBottom || '0', 10),
+          0,
+          clientHeight - offset
         );
       }
     }
@@ -235,6 +244,10 @@ export default class ZyouMention extends React.Component<
   handleFocus = (evt: React.FocusEvent) => {
     const { onFocus } = this.props;
 
+    this.setState({
+      focused: true
+    });
+
     if (typeof onFocus === 'function') {
       onFocus(evt);
     }
@@ -242,6 +255,9 @@ export default class ZyouMention extends React.Component<
 
   handleBlur = (evt: React.FocusEvent) => {
     const { onBlur } = this.props;
+    this.setState({
+      focused: false
+    });
     if (typeof onBlur === 'function') {
       onBlur(evt);
     }
@@ -507,7 +523,7 @@ export default class ZyouMention extends React.Component<
   render() {
     const {
       style = {},
-      className,
+      className = '',
       children,
       onChange,
       placeholder,
@@ -516,7 +532,7 @@ export default class ZyouMention extends React.Component<
       ...rest
     } = this.props;
 
-    const { value, measureText } = this.state;
+    const { value, measureText, focused } = this.state;
 
     const props = omit(rest, [
       'value',
@@ -534,9 +550,10 @@ export default class ZyouMention extends React.Component<
       ...ZyouMention.style
     };
 
-    const wrapperClasName = `${ZyouMention.clsPrefix}__mention${
-      className ? ` ${className}` : ''
-    }`;
+    const wrapperClasName = classnames(`${ZyouMention.clsPrefix}__mention`, {
+      [className]: !!className,
+      [`${ZyouMention.clsPrefix}__mention-focused`]: focused
+    } as Record<string, any>);
 
     const inputClassName = `${ZyouMention.clsPrefix}__mention-input`;
 

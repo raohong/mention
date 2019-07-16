@@ -2,10 +2,10 @@
 @zIndex: 10;
 
 body {
-  padding-top: 50vh;
+  padding-top: 100vh;
 }
 
-.reset(@fontSize: inherit, @lineHeight:inherit, @padding:4px 10px) {
+.reset(@border : 0, @fontSize: inherit, @lineHeight:inherit,  @padding:4px 10px) {
   outline: 0;
   border: 0;
   padding: @padding;
@@ -15,8 +15,10 @@ body {
   line-height: @lineHeight;
   font-family: inherit;
   max-width: 100%;
-  display: inline-block;
+  display: block;
   width: 100%;
+
+  border: @border solid transparent;
 
   background-image: none;
 
@@ -45,24 +47,32 @@ body {
 .@{prefix}__mention {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   position: relative;
+  display: flex;
+  border-radius: 4px;
+  border: 1px solid #d9d9d9;
+  &,
+  * {
+    box-sizing: border-box;
+  }
 
+  &-focused {
+    border-color: blue;
+    box-shadow: 0 2px 4px blue;
+  }
+
+  &-input,
+  &-measure {
+    .reset(0px);
+  }
   &-input {
-    .reset();
     .scrollbar();
     resize: none;
-    border: 1px solid #ccc;
+    border-color: #ccc;
     overflow-y: hidden;
     border-radius: 4px;
-
-    &:focus {
-      outline: 0;
-      border-color: #425bff;
-      box-shadow: 0 0 2px #8696ff;
-    }
   }
 
   &-measure {
-    .reset();
     position: absolute;
     left: 0;
     top: 0;
